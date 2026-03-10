@@ -1,38 +1,60 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { db } from "./db";
+import {
+  leads,
+  type LeadResponse,
+  type LeadsListResponse,
+  type CreateLeadRequest,
+  type UpdateLeadRequest,
+} from "@shared/schema";
+import { eq, desc, ilike } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getLeads(search?: string): Promise<LeadsListResponse>;
+  getLead(id: number): Promise<LeadResponse | undefined>;
+  createLead(lead: CreateLeadRequest): Promise<LeadResponse>;
+  updateLead(id: number, updates: UpdateLeadRequest): Promise<LeadResponse>;
+  deleteLead(id: number): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DatabaseStorage implements IStorage {
+  async getLeads(search?: string): Promise<LeadsListResponse> {
+    if (search) {
+      return await db
+        .select()
+        .from(leads)
+        .where(ilike(leads.name, `%${search}%`))
+        .orderBy(desc(leads.createdAt));
+    }
+    return await db.select().from(leads).orderBy(desc(leads.createdAt));
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getLead(id: number): Promise<LeadResponse | undefined> {
+    const [lead] = await db.select().from(leads).where(eq(leads.id, id));
+    return lead;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async createLead(insertLead: CreateLeadRequest): Promise<LeadResponse> {
+    const [lead] = await db.insert(leads).values(insertLead).returning();
+    return lead;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async updateLead(id: number, updates: UpdateLeadRequest): Promise<LeadResponse> {
+    const [updated] = await db
+      .update(leads)
+      .set(updates)
+      .where(eq(leads.id, id))
+      .returning();
+    
+    if (!updated) {
+      throw new Error(`Lead with id ${id} not found`);
+    }
+    
+    return updated;
+  }
+
+  async deleteLead(id: number): Promise<void> {
+    await db.delete(leads).where(eq(leads.id, id));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
