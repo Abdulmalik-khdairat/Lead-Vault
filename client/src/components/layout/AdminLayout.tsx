@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { Hexagon, Users, LayoutDashboard, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -48,7 +49,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           })}
         </nav>
         
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-4">
+          <div className="flex items-center justify-between px-3">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Theme</span>
+            <ThemeToggle />
+          </div>
           <div className="flex items-center gap-3 px-3 py-2 mb-4">
             <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
               {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase() || 'A'}
