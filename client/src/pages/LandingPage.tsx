@@ -36,7 +36,7 @@ export default function LandingPage() {
       form.reset();
       toast({
         title: "Success!",
-        description: "We've received your information. We'll be in touch shortly.",
+        description: "We  received your information. We'll be in touch shortly.",
       });
     } catch (error) {
       toast({
@@ -123,7 +123,7 @@ export default function LandingPage() {
             <Card className="p-8 sm:p-10 glass-card">
               <div className="mb-8">
                 <h2 className="text-2xl font-bold text-foreground">Get Started Today</h2>
-                <p className="text-muted-foreground mt-2">Fill out the form and our team will reach out to you.</p>
+                <p className="text-muted-foreground mt-2">Fill the form and our team will reach out to you.</p>
               </div>
 
               {createLead.isSuccess ? (
